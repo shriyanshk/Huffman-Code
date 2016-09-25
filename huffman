@@ -1,0 +1,227 @@
+package lab1;
+
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Scanner;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.PriorityQueue;
+import java.util.Queue;
+import java.util.Set;
+
+/*
+@author Shriyansh Kothari
+ */
+public class Lab1 {
+
+    Map<Character, Integer> mapForAll = new HashMap<Character, Integer>();
+    Lab1Node root;
+    Map<Character, Integer> charCount = new HashMap<Character, Integer>();
+    String userText;
+    Map<Character, String> encodedDictionary = new HashMap<Character, String>();
+    String[] encodedValue = new String[256];
+
+    private Lab1() {
+
+    }
+
+    ;
+
+    public class Lab1Node {
+
+        Lab1Node leftChild;
+        Lab1Node rightChild;
+        int value;
+        char chara;
+
+        public Lab1Node(char chara, int value, Lab1Node leftChild, Lab1Node rightChild) {
+            this.chara = chara;
+            this.value = value;
+            this.leftChild = leftChild;
+            this.rightChild = rightChild;
+        }
+    }
+
+    public class compareHuff implements Comparator<Lab1Node> {
+
+        @Override
+        public int compare(Lab1Node node1, Lab1Node node2) {
+            return node1.value - node2.value;
+        }
+    }
+
+    public Map<Character, Integer> huffmanCreation() {
+        int count = 1;
+        boolean valueFound = false;
+        Scanner userString = new Scanner(System.in);
+        System.out.println("Enter the String for Huffman Coding\n");
+        userText = userString.nextLine();
+        if (userText == null || userText.length() == 0) {
+            System.out.println("String Cannot be Empty");
+            return null;
+        } else {
+            userText = userText.replaceAll(" ", "/").toLowerCase();
+            System.out.println(userText);
+            char[] userTextArray = userText.toCharArray();
+            for (int i = 0; i < userText.length(); i++) {
+                System.out.println(userTextArray[i]);
+
+                if (!charCount.containsKey(userTextArray[i])) {
+                    charCount.put(userTextArray[i], count);
+                } else {
+                    int value = charCount.get(userTextArray[i]);
+                    charCount.put(userTextArray[i], ++value);
+                }
+                /*
+                if(charCount.isEmpty())
+                {
+                    charCount.put(userTextArray[i],count);
+                }
+                else
+                {
+                    for (Map.Entry<Character,Integer> entry : charCount.entrySet())
+                    {
+
+                        Character key = entry.getKey();
+                        Integer value = entry.getValue();
+
+                        if(key == userTextArray[i])
+                        {
+                            value = value + 1;
+                            charCount.put(userTextArray[i], value);
+                            valueFound = true;
+                        }
+                        else if (charCount.containsKey(userTextArray[i]))
+                        {         }    
+                        else
+                            valueFound = false;
+                    }
+                    if(!valueFound)
+                        charCount.put(userTextArray[i], count);
+                }
+                count = 1;
+                 */
+            }
+
+            System.out.println(charCount);
+            return charCount;
+        }
+    }
+
+    private Lab1Node showHuffmanTree(Map<Character, Integer> myMap) {
+        Queue<Lab1Node> nodeQueue = createNodeQueue(myMap);
+
+        while (nodeQueue.size() > 1) {
+            Lab1Node node1 = nodeQueue.remove();
+            Lab1Node node2 = nodeQueue.remove();
+            Lab1Node node = new Lab1Node('\0', node1.value + node2.value, node1, node2);
+            nodeQueue.add(node);
+        }
+        return nodeQueue.remove();
+    }
+
+    private Queue<Lab1Node> createNodeQueue(Map<Character, Integer> myMap) {
+        Queue<Lab1Node> pq = new PriorityQueue<Lab1Node>(11, new compareHuff());
+        for (Entry<Character, Integer> entry : myMap.entrySet()) {
+            pq.add(new Lab1Node(entry.getKey(), entry.getValue(), null, null));
+        }
+        return pq;
+    }
+
+    /*
+    public Lab1Node showHuffmanTree(Map<Character, Integer> myMap) {
+        PriorityQueue<Lab1Node> queue = new PriorityQueue<Lab1Node>(6, new compare());
+        for (Entry<Character, Integer> entry : myMap.entrySet()) {
+            queue.add(new Lab1Node(entry.getKey(), entry.getValue(), null, null));
+        }
+
+        while (queue.size() > 1) {
+            Lab1Node node1 = queue.remove();
+            Lab1Node node2 = queue.remove();
+            Lab1Node node = new Lab1Node('\0', node1.value + node2.value, node1, node2);
+            queue.add(node);
+        }
+        return queue.remove();
+    }*/
+    public Map<Character, String> codeGenerator(Set<Character> chara, Lab1Node node) {
+        Map<Character, String> myMap = new HashMap<Character, String>();
+        doGenerateCode(node, myMap, "");
+        return myMap;
+    }
+
+    private void doGenerateCode(Lab1Node node, Map<Character, String> myMap, String s) {
+        if (node.leftChild == null && node.rightChild == null) {
+            myMap.put(node.chara, s);
+            return;
+        }
+        doGenerateCode(node.leftChild, myMap, s + '0');
+        doGenerateCode(node.rightChild, myMap, s + '1');
+    }
+
+    private void encodedMessage(Map<Character, String> charCode, String sentence) {
+
+        for (int i = 0; i < sentence.length(); i++) {
+            encodedDictionary.put(sentence.charAt(i), charCode.get(sentence.charAt(i)));
+            //stringBuilder.append(charCode.get(sentence.charAt(i)));
+            encodedValue[i] = charCode.get(sentence.charAt(i));
+            System.out.println(sentence.charAt(i) + " " + charCode.get(sentence.charAt(i)) + "\n");
+        }
+        //System.out.println(stringBuilder);
+        for (int i = 0; i < sentence.length(); i++) {
+            System.out.print(encodedValue[i] + "\n");
+        }
+        System.out.println(encodedDictionary);
+    }
+
+    private void decodedMessage(Map<Character, String> encodedMessage, String encoded) {
+
+        for (int i = 0; i < userText.length(); i++) {
+            for (Map.Entry<Character, String> entry : encodedMessage.entrySet()) {
+                Character key = entry.getKey();
+                String value = entry.getValue();
+                if (encodedValue[i] == value) {
+                    System.out.print(key);
+                }
+            }
+
+        }
+    }
+
+    public void displayUserInput() {
+        int optionNum;
+        Scanner userInput = new Scanner(System.in);
+        System.out.println("Enter one of the following numbers to perform an action:");
+        System.out.println("1. Enter Text \n2. Show \n3. Code \n4. Decode");
+        optionNum = userInput.nextInt();
+        switch (optionNum) {
+            case 1:
+                mapForAll = huffmanCreation();
+                displayUserInput();
+                break;
+            case 2:
+                root = showHuffmanTree(mapForAll);
+                displayUserInput();
+                break;
+            case 3:
+                Map<Character, String> charCode = codeGenerator(mapForAll.keySet(), root);
+                encodedMessage(charCode, userText);
+                //System.out.println(finalEncodedMessage);
+                displayUserInput();
+
+                break;
+            case 4:
+                //Decoding
+                decodedMessage(encodedDictionary, userText);
+                displayUserInput();
+                break;
+            default:
+                System.out.println("Sorry Wrong Input!!");
+                break;
+        }
+    }
+
+    public static void main(String[] args) {
+        Lab1 L1 = new Lab1();
+        L1.displayUserInput();
+    }
+}
